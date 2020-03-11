@@ -1,5 +1,6 @@
 package org.overlake.mat803.criminalintent;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,10 +12,12 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import java.util.UUID;
 
@@ -22,6 +25,7 @@ import static android.widget.CompoundButton.*;
 
 public class CrimeFragment extends Fragment {
 
+    private static final String DIALOG_DATE = "dialog_date";
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
@@ -73,7 +77,14 @@ public class CrimeFragment extends Fragment {
 
         mDateButton = v.findViewById(R.id.crime_date);
         mDateButton.setText(mCrime.getDate().toString());
-        mDateButton.setEnabled(false);
+        mDateButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DatePickerFragment dialog = new DatePickerFragment();
+                FragmentManager fm = getFragmentManager();
+                dialog.show(fm, DIALOG_DATE);
+            }
+        });
 
         mSolvedCheckbox = v.findViewById(R.id.crime_solved);
         mSolvedCheckbox.setChecked(mCrime.isSolved());
