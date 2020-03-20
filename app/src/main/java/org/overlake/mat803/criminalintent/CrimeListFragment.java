@@ -32,11 +32,13 @@ public class CrimeListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         mCrimeLab = CrimeLab.get(getActivity());
-        updateSubtitle();
     }
 
-    private void updateSubtitle() {
-        int crimeCount = mCrimeLab.getCrimes().size();
+    private void updateUI() {
+        List<Crime> crimes = mCrimeLab.getCrimes();
+        mAdapter.setCrimes(crimes);
+        mAdapter.notifyDataSetChanged();
+        int crimeCount = crimes.size();
         String subtitle = getString(R.string.crime_count, crimeCount);
         ((AppCompatActivity) getActivity()).getSupportActionBar().setSubtitle(subtitle);
     }
@@ -117,6 +119,10 @@ public class CrimeListFragment extends Fragment {
             mCrimes = crimes;
         }
 
+        public void setCrimes(List<Crime> crimes){
+            mCrimes = crimes;
+        }
+
         @NonNull
         @Override
         public CrimeHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -144,7 +150,6 @@ public class CrimeListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        mAdapter.notifyDataSetChanged();
-        updateSubtitle();
+        updateUI();
     }
 }
