@@ -7,7 +7,7 @@ import android.database.CursorWrapper;
 import android.database.sqlite.SQLiteDatabase;
 
 import org.overlake.mat803.criminalintent.database.CrimeBaseHelper;
-import org.overlake.mat803.criminalintent.database.CrimeCursorWrapper;
+import org.overlake.mat803.criminalintent.database.CrimeCursor;
 import org.overlake.mat803.criminalintent.database.CrimeDbSchema;
 import org.overlake.mat803.criminalintent.database.CrimeDbSchema.CrimeTable;
 
@@ -33,7 +33,7 @@ public class CrimeLab {
 
     public List<Crime> getCrimes(){
         List<Crime> crimes =  new ArrayList<>();
-        CrimeCursorWrapper cursor = queryCrimes(null, null);
+        CrimeCursor cursor = queryCrimes(null, null);
         try {
             cursor.moveToFirst();
             while(!cursor.isAfterLast()){
@@ -47,7 +47,7 @@ public class CrimeLab {
     }
 
     public Crime getCrime(UUID id){
-        CrimeCursorWrapper cursor = queryCrimes(
+        CrimeCursor cursor = queryCrimes(
                 CrimeTable.Cols.UUID + " = ? ",
                 new String[] { id.toString() }
         );
@@ -89,8 +89,8 @@ public class CrimeLab {
         return values;
     }
 
-    private CrimeCursorWrapper queryCrimes(String whereClause, String[] whereArgs) {
-        Cursor cursor = mDatabase.query(
+    private CrimeCursor queryCrimes(String whereClause, String[] whereArgs) {
+        CrimeCursor cursor = (CrimeCursor) mDatabase.query(
                 CrimeTable.NAME,
                 null,
                 whereClause,
@@ -100,6 +100,6 @@ public class CrimeLab {
                 null
         );
 
-        return new CrimeCursorWrapper(cursor);
+        return cursor;
     }
 }

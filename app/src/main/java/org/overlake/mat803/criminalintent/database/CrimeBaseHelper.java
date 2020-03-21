@@ -10,7 +10,7 @@ import org.overlake.mat803.criminalintent.database.CrimeDbSchema.CrimeTable;
 
 public class CrimeBaseHelper extends SQLiteOpenHelper {
     public CrimeBaseHelper(Context context) {
-        super(context, CrimeDbSchema.DATABASE_NAME, null, CrimeDbSchema.VERSION);
+        super(context, CrimeDbSchema.DATABASE_NAME, new CrimeCursor.Factory(), CrimeDbSchema.VERSION);
     }
 
     @Override
