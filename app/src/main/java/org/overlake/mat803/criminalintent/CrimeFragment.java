@@ -1,5 +1,6 @@
 package org.overlake.mat803.criminalintent;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -91,6 +92,18 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
             }
         });
 
+        v.findViewById(R.id.crime_report).setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT, getCrimeReport());
+                intent.putExtra(Intent.EXTRA_SUBJECT, R.string.crime_report_subject);
+                intent = Intent.createChooser(intent, getString(R.string.send_report));
+                startActivity(intent);
+            }
+        });
         return v;
     }
 
@@ -104,5 +117,24 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
     public void onPause() {
         super.onPause();
         CrimeLab.get(getActivity()).updateCrime(mCrime);
+    }
+
+    private String getCrimeReport(){
+        String solved = getString(mCrime.isSolved() ?
+                R.string.crime_report_solved : R.string.crime_report_unsolved);
+
+        String suspect = mCrime.getSuspect();
+        if(suspect == null){
+            suspect = getString(R.string.crime_report_no_suspect);
+        } else {
+            suspect = getString(R.string.crime_report_suspect, suspect);
+        }
+
+        return getString(R.string.crime_report,
+                mCrime.getTitle(),
+                mCrime.getDate(),
+                solved,
+                suspect
+        );
     }
 }

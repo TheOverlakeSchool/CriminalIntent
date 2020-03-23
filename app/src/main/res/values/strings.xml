@@ -9,4 +9,21 @@
     <string name="crime_detail_tille">Crime Detail</string>
     <string name="crime_list_title">List of Crimes</string>
     <string name="crime_count">%d crimes</string>
+    <string name="crime_suspect_text">Choose Suspect</string>
+    <string name="crime_report_text">Send Crime Report</string>
+    <string name="crime_report">
+        <!--
+            For format specifiers, see:
+            https://docs.oracle.com/javase/9/docs/api/java/util/Formatter.html
+
+            1$ = Title, 2$ = Date, 3$ = Solved, 4$ = Suspect
+        -->
+        %1$s!  The crime was discovered on %2$tA, %2$tB %2$te. %3$s, and %4$s
+    </string>
+    <string name="crime_report_solved">The case is solved</string>
+    <string name="crime_report_unsolved">The case is not solved</string>
+    <string name="crime_report_no_suspect">there is no suspect.</string>
+    <string name="crime_report_suspect">the suspect is %s.</string>
+    <string name="crime_report_subject">CriminalIntent Crime Report</string>
+    <string name="send_report">Send crime report via</string>
 </resources>
