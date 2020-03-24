@@ -1,7 +1,12 @@
 package org.overlake.mat803.criminalintent;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -11,6 +16,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,9 +31,11 @@ import static android.widget.CompoundButton.*;
 public class CrimeFragment extends Fragment implements DatePickerFragment.OnDateUpdateListener {
 
     private static final String DIALOG_DATE = "dialog_date";
+    private static final int REQUEST_CONTACT = 0;
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
+    private Button mSuspectButton;
     private CheckBox mSolvedCheckbox;
     private static final String ARG_CRIME_ID = "crime_id";
 
@@ -92,6 +100,26 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
             }
         });
 
+
+        mSuspectButton = v.findViewById(R.id.crime_suspect);
+        mSuspectButton.setText(mCrime.getSuspect());
+
+        final Intent pickIntent = new Intent();
+        pickIntent.setAction(Intent.ACTION_PICK);
+        pickIntent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+        PackageManager packageManager = getActivity().getPackageManager();
+
+        if(packageManager.resolveActivity(pickIntent, PackageManager.MATCH_DEFAULT_ONLY) == null){
+            mSuspectButton.setEnabled(false);
+        } else {
+            mSuspectButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    startActivityForResult(pickIntent, REQUEST_CONTACT);
+                }
+            });
+        }
+
         v.findViewById(R.id.crime_report).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -136,5 +164,31 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
                 solved,
                 suspect
         );
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CONTACT && data != null){
+            Uri contactUri = data.getData();
+            String[] fields = {ContactsContract.Contacts.DISPLAY_NAME};
+            Cursor c = getActivity().getContentResolver().query(
+                    contactUri,
+                    fields,
+                    null,
+                    null,
+                    null
+            );
+
+            try {
+                if(c.getCount() > 0){
+                    c.moveToFirst();
+                    String suspect = c.getString(0);
+                    mCrime.setSuspect(suspect);
+                    mSuspectButton.setText(suspect);
+                }
+            } finally {
+                c.close();
+            }
+        }
     }
 }
