@@ -106,7 +106,7 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
 
         final Intent pickIntent = new Intent();
         pickIntent.setAction(Intent.ACTION_PICK);
-        pickIntent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+        pickIntent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
         PackageManager packageManager = getActivity().getPackageManager();
 
         if(packageManager.resolveActivity(pickIntent, PackageManager.MATCH_DEFAULT_ONLY) == null){
@@ -170,7 +170,10 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CONTACT && data != null){
             Uri contactUri = data.getData();
-            String[] fields = {ContactsContract.Contacts.DISPLAY_NAME};
+            String[] fields = {
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+            };
             Cursor c = getActivity().getContentResolver().query(
                     contactUri,
                     fields,
