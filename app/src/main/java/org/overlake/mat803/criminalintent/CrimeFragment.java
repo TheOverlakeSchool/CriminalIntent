@@ -1,5 +1,6 @@
 package org.overlake.mat803.criminalintent;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,6 +21,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.PermissionChecker;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -32,12 +34,14 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
 
     private static final String DIALOG_DATE = "dialog_date";
     private static final int REQUEST_CONTACT = 0;
+    private static final int REQUEST_PERMISSION_READ_CONTACTS = 0;
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
     private Button mSuspectButton;
     private CheckBox mSolvedCheckbox;
     private static final String ARG_CRIME_ID = "crime_id";
+    private static boolean sHasPermissionReadContacts;
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -102,7 +106,27 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
 
 
         mSuspectButton = v.findViewById(R.id.crime_suspect);
-        mSuspectButton.setText(mCrime.getSuspect());
+
+        if(mCrime.getSuspect() != null){
+            Cursor cursor = getActivity().getContentResolver().query(
+                    ContactsContract.Contacts.CONTENT_URI,
+                    new String[] {ContactsContract.Contacts.DISPLAY_NAME},
+                    ContactsContract.Contacts.LOOKUP_KEY + " = ?",
+                    new String[] {mCrime.getSuspect()},
+                    null
+            );
+
+            try {
+                if(cursor.getCount() > 0){
+                    cursor.moveToFirst();
+                    String name = cursor.getString(0);
+                    mSuspectButton.setText(name);
+                }
+            } finally {
+                cursor.close();
+            }
+        }
+
 
         final Intent pickIntent = new Intent();
         pickIntent.setAction(Intent.ACTION_PICK);
@@ -115,7 +139,12 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
             mSuspectButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    startActivityForResult(pickIntent, REQUEST_CONTACT);
+                    if(sHasPermissionReadContacts){
+                        startActivityForResult(pickIntent, REQUEST_CONTACT);
+                    } else {
+                        requestPermissions(new String[] {Manifest.permission.READ_CONTACTS}, REQUEST_PERMISSION_READ_CONTACTS);
+                    }
+
                 }
             });
         }
@@ -170,7 +199,9 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CONTACT && data != null){
             Uri contactUri = data.getData();
-            String[] fields = {ContactsContract.Contacts.DISPLAY_NAME};
+            String[] fields = {
+                    ContactsContract.Contacts.DISPLAY_NAME,
+                    ContactsContract.Contacts.LOOKUP_KEY};
             Cursor c = getActivity().getContentResolver().query(
                     contactUri,
                     fields,
@@ -189,6 +220,13 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
             } finally {
                 c.close();
             }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if(requestCode == REQUEST_PERMISSION_READ_CONTACTS && grantResults.length > 0 && grantResults[0] == PermissionChecker.PERMISSION_GRANTED){
+            sHasPermissionReadContacts = true;
         }
     }
 }
