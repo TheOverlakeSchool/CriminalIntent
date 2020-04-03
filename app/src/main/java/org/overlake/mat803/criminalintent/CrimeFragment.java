@@ -28,6 +28,8 @@ import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.bumptech.glide.Glide;
+
 import java.io.File;
 import java.util.Date;
 import java.util.List;
@@ -157,8 +159,7 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
             mCameraButton.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Uri uri = FileProvider.getUriForFile(getActivity(),
-                            "org.overlake.mat803.criminalintent.fileprovider", mCrimePhotoFile);
+                    Uri uri = getUri();
                     cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
                     for(ResolveInfo activity : cameraActivities){
                         getActivity().grantUriPermission(activity.activityInfo.packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -170,8 +171,18 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
         }
 
         mCrimePhoto = v.findViewById(R.id.crime_photo);
-
+       // updatePhotoView();
+        Glide.with(getActivity()).load(mCrimePhotoFile).into(mCrimePhoto);
         return v;
+    }
+
+    private Uri getUri() {
+        return FileProvider.getUriForFile(getActivity(),
+                                "org.overlake.mat803.criminalintent.fileprovider", mCrimePhotoFile);
+    }
+
+    private void updatePhotoView() {
+        mCrimePhoto.setImageBitmap(PictureUtils.getScaledBitmap(mCrimePhotoFile.getPath(), getActivity(), 4));
     }
 
     @Override
@@ -207,7 +218,11 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CONTACT && data != null){
+        if(resultCode != Activity.RESULT_OK){
+            return;
+        }
+
+        if(requestCode == REQUEST_CONTACT && data != null){
             Uri contactUri = data.getData();
             String[] fields = {ContactsContract.Contacts.DISPLAY_NAME};
             Cursor c = getActivity().getContentResolver().query(
@@ -228,6 +243,10 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
             } finally {
                 c.close();
             }
+        } else if (requestCode == REQUEST_PHOTO){
+            updatePhotoView();
+            Uri uri = getUri();
+            getActivity().revokeUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         }
     }
 }
