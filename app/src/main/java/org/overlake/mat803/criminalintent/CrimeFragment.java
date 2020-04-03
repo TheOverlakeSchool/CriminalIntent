@@ -3,10 +3,12 @@ package org.overlake.mat803.criminalintent;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -16,14 +18,19 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import java.io.File;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static android.widget.CompoundButton.*;
@@ -32,12 +39,16 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
 
     private static final String DIALOG_DATE = "dialog_date";
     private static final int REQUEST_CONTACT = 0;
+    private static final int REQUEST_PHOTO = 1;
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
     private Button mSuspectButton;
     private CheckBox mSolvedCheckbox;
     private static final String ARG_CRIME_ID = "crime_id";
+    private File mCrimePhotoFile;
+    private ImageButton mCameraButton;
+    private ImageView mCrimePhoto;
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -51,7 +62,9 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         UUID crimeId = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
-        mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
+        CrimeLab crimeLab = CrimeLab.get(getActivity());
+        mCrime = crimeLab.getCrime(crimeId);
+        mCrimePhotoFile = crimeLab.getCrimePhotoFile(mCrime);
     }
 
     @Nullable
@@ -132,6 +145,32 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
                 startActivity(intent);
             }
         });
+
+        mCameraButton = v.findViewById(R.id.crime_camera);
+        final Intent cameraIntent = new Intent();
+        cameraIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+        final List<ResolveInfo> cameraActivities = packageManager.queryIntentActivities(cameraIntent,
+                PackageManager.MATCH_DEFAULT_ONLY);
+        if(mCrimePhotoFile == null || cameraActivities.size() == 0){
+            mCameraButton.setEnabled(false);
+        } else {
+            mCameraButton.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Uri uri = FileProvider.getUriForFile(getActivity(),
+                            "org.overlake.mat803.criminalintent.fileprovider", mCrimePhotoFile);
+                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                    for(ResolveInfo activity : cameraActivities){
+                        getActivity().grantUriPermission(activity.activityInfo.packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    }
+                    startActivityForResult(cameraIntent, REQUEST_PHOTO);
+                }
+            });
+
+        }
+
+        mCrimePhoto = v.findViewById(R.id.crime_photo);
+
         return v;
     }
 

@@ -11,6 +11,7 @@ import org.overlake.mat803.criminalintent.database.CrimeCursorWrapper;
 import org.overlake.mat803.criminalintent.database.CrimeDbSchema;
 import org.overlake.mat803.criminalintent.database.CrimeDbSchema.CrimeTable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class CrimeLab {
 
     private static CrimeLab sCrimeLab;
+    private final Context mContext;
     private SQLiteDatabase mDatabase;
 
     public static CrimeLab get(Context context){
@@ -28,6 +30,7 @@ public class CrimeLab {
         return  sCrimeLab;
     }
     private CrimeLab(Context context){
+        mContext = context;
         mDatabase = new CrimeBaseHelper(context).getWritableDatabase();
     }
 
@@ -102,5 +105,13 @@ public class CrimeLab {
         );
 
         return new CrimeCursorWrapper(cursor);
+    }
+
+    public File getCrimePhotoFile(Crime crime){
+        File crimePhotosDir = new File(mContext.getFilesDir(), "crime_photos");
+        if(!crimePhotosDir.exists()) {
+            crimePhotosDir.mkdir();
+        }
+        return new File(crimePhotosDir, "IMG_" + crime.getId() + ".jpg");
     }
 }
