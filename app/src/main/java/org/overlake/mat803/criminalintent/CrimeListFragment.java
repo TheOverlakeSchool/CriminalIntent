@@ -26,6 +26,15 @@ public class CrimeListFragment extends Fragment {
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
     private CrimeLab mCrimeLab;
+    private OnCrimeSelectedListener mCrimeSelectedListener;
+
+    public void setCrimeSelectedListener(OnCrimeSelectedListener crimeSelectedListener) {
+        mCrimeSelectedListener = crimeSelectedListener;
+    }
+
+    interface OnCrimeSelectedListener {
+        void onCrimeSelected(Crime crime);
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,7 +43,7 @@ public class CrimeListFragment extends Fragment {
         mCrimeLab = CrimeLab.get(getActivity());
     }
 
-    private void updateUI() {
+    public void updateUI() {
         List<Crime> crimes = mCrimeLab.getCrimes();
         mAdapter.setCrimes(crimes);
         mAdapter.notifyDataSetChanged();
@@ -104,8 +113,7 @@ public class CrimeListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            Intent intent = CrimePagerActivity.newIntent(getActivity(), mCrime.getId());
-            startActivity(intent);
+            mCrimeSelectedListener.onCrimeSelected(mCrime);
         }
     }
 

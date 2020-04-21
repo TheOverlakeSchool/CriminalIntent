@@ -51,7 +51,23 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
     private File mCrimePhotoFile;
     private ImageButton mCameraButton;
     private ImageView mCrimePhoto;
+    private OnCrimeUpdatedListener mCrimeUpdatedListener;
 
+    public void setCrimeUpdatedListener(OnCrimeUpdatedListener crimeUpdatedListener) {
+        mCrimeUpdatedListener = crimeUpdatedListener;
+    }
+
+    private void updateCrime(){
+        CrimeLab.get(this.getActivity()).updateCrime(mCrime);
+        if(mCrimeUpdatedListener != null){
+            mCrimeUpdatedListener.onCrimeUpdated(mCrime);
+        }
+
+    }
+
+    interface OnCrimeUpdatedListener {
+        void onCrimeUpdated(Crime crime);
+    }
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
         args.putSerializable(ARG_CRIME_ID, crimeId);
@@ -86,6 +102,7 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 mCrime.setTitle(charSequence.toString());
+                updateCrime();
             }
 
             @Override
@@ -189,6 +206,7 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
     public void onDateUpdate(Date date) {
         mCrime.setDate(date);
         mDateButton.setText(mCrime.getDate().toString());
+        updateCrime();
     }
 
     @Override
@@ -239,6 +257,7 @@ public class CrimeFragment extends Fragment implements DatePickerFragment.OnDate
                     String suspect = c.getString(0);
                     mCrime.setSuspect(suspect);
                     mSuspectButton.setText(suspect);
+                    updateCrime();
                 }
             } finally {
                 c.close();
